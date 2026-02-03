@@ -156,6 +156,64 @@
     }
   </style>
 </head>
+
+
+<!-- Auth0 SDK -->
+<script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.min.js"></script>
+
+<script>
+  // Replace with your Auth0 values from the extension/dashboard
+  const auth0 = Auth0Client.createAuth0Client({
+    domain: "YOUR_AUTH0_DOMAIN.auth0.com",          // e.g. dev-abc123.us.auth0.com
+    clientId: "YOUR_AUTH0_CLIENT_ID",
+    authorizationParams: {
+      redirect_uri: window.location.origin + "/callback",  // or your success page
+      audience: "https://YOUR_AUTH0_DOMAIN.auth0.com/api/v2/", // optional for API
+    }
+  });
+
+  // Login button handler (replace your form submit or add a new button)
+  async function login() {
+    await (await auth0).loginWithRedirect();
+  }
+
+  // Check if user is logged in on page load
+  window.onload = async () => {
+    const query = window.location.search;
+    if (query.includes("code=") && query.includes("state=")) {
+      // Handle redirect callback
+      await (await auth0).handleRedirectCallback();
+      window.history.replaceState({}, document.title, "/"); // clean URL
+      showLoggedInState();
+    }
+
+    const user = await (await auth0).getUser();
+    if (user) {
+      showLoggedInState(user);
+    }
+  };
+
+  function showLoggedInState(user = null) {
+    // Hide login form, show welcome
+    document.getElementById('loginForm').style.display = 'none';
+    const msg = document.getElementById('successMessage');
+    msg.style.display = 'block';
+    msg.innerHTML = user 
+      ? `Welcome ${user.name || user.email}! Logged in via Auth0.`
+      : 'Logged in successfully!';
+  }
+
+  // Add a logout function if needed
+  async function logout() {
+    (await auth0).logout({ logoutParams: { returnTo: window.location.origin } });
+  }
+</script>
+
+
+  
+
+
+  
 <body>
 
 <div class="login-container">
@@ -208,7 +266,10 @@
         </span>
       </div>
 
-      <button type="submit" class="btn-login">Sign in</button>
+      //<button type="submit" class="btn-login">Sign in</button> 
+      <button onclick="login()">Sign in with Auth0</button>
+
+
 
     </form>
 
@@ -309,3 +370,4 @@ document.querySelectorAll('input').forEach(input => {
 </body>
 
 </html>
+
