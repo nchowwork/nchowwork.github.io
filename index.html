@@ -258,5 +258,54 @@ document.querySelectorAll('input').forEach(input => {
 });
 </script>
 
+<!-- ... your existing header and form-body ... -->
+
+<div class="form-body">
+  <h2>Sign in</h2>
+
+  <!-- Email/Password login will be handled by widget -->
+  <div id="login-container"></div>
+
+  <!-- Fallback or extra info -->
+  <p>Don't have an account? <a href="#" id="signup-link">Sign up</a></p>
+</div>
+
+<!-- Add this before </body> -->
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+<script>
+  // Initialize widget
+  if (window.netlifyIdentity) {
+    netlifyIdentity.on("init", user => {
+      if (!user) {
+        netlifyIdentity.open(); // auto-open login modal on page load (optional)
+      }
+    });
+
+    netlifyIdentity.on("login", user => {
+      alert(`Welcome ${user.user_metadata.full_name || user.email}!`);
+      // Redirect or show dashboard:
+      // window.location.href = "/dashboard.html";
+      netlifyIdentity.close(); // close modal
+    });
+
+    netlifyIdentity.on("logout", () => {
+      alert("Logged out");
+    });
+  }
+
+  // Optional: open signup
+  document.getElementById("signup-link")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    netlifyIdentity.open("signup");
+  });
+</script>
+
+
+  
+
+  
+
 </body>
+
 </html>
