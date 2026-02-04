@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login / Sign Up</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <!-- Supabase JS client via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* Your previous nice CSS – keeping it simple and matching your style */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { min-height:100vh; font-family:system-ui,-apple-system,sans-serif; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); display:grid; place-items:center; padding:20px; }
+    .auth-container { background:white; border-radius:16px; box-shadow:0 20px 40px rgba(0,0,0,0.25); width:100%; max-width:420px; overflow:hidden; }
+    .header { background:#4f46e5; color:white; padding:2rem; text-align:center; }
+    .header h1 { font-size:1.9rem; margin-bottom:0.3rem; }
+    .header p { opacity:0.9; font-size:0.95rem; }
+    .form-body { padding:2.5rem 2.2rem 2rem; }
+    .form-group { margin-bottom:1.5rem; position:relative; }
+    .form-group label { display:block; margin-bottom:0.5rem; color:#374151; font-weight:500; font-size:0.95rem; }
+    .input-wrapper { position:relative; }
+    .input-wrapper i { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#9ca3af; }
+    input { width:100%; padding:0.9rem 1rem 0.9rem 2.8rem; border:1px solid #d1d5db; border-radius:8px; font-size:1rem; transition:all 0.2s; }
+    input:focus { outline:none; border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
+    .error { color:#ef4444; font-size:0.85rem; margin-top:0.4rem; display:none; text-align:center; }
+    .success { color:#10b981; text-align:center; font-size:1.1rem; margin:1.5rem 0; display:none; }
+    .btn-primary { width:100%; padding:1rem; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:1.05rem; font-weight:600; cursor:pointer; transition:all 0.25s; }
+    .btn-primary:hover { background:#4338ca; transform:translateY(-1px); }
+    .toggle-link { text-align:center; margin-top:1.5rem; color:#6b7280; font-size:0.95rem; }
+    .toggle-link a { color:#4f46e5; font-weight:500; text-decoration:none; cursor:pointer; }
+    .toggle-link a:hover { text-decoration:underline; }
+  </style>
+</head>
+<body>
+
+<div class="auth-container">
+  <div class="header">
+    <h1 id="form-title">Welcome back</h1>
+    <p id="form-subtitle">Sign in to continue</p>
+  </div>
+
+  <div class="form-body">
+    <form id="authForm">
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-envelope"></i>
+          <input type="email" id="email" placeholder="name@example.com" required autocomplete="email">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" id="password" placeholder="••••••••" required minlength="6" autocomplete="current-password">
+        </div>
+      </div>
+
+      <div class="form-group" id="confirmGroup" style="display:none;">
+        <label for="confirm">Confirm Password</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" id="confirm" placeholder="••••••••" minlength="6">
+        </div>
+      </div>
+
+      <div id="errorMsg" class="error"></div>
+      <div id="successMsg" class="success"></div>
+
+      <button type="submit" class="btn-primary" id="submitBtn">Sign In</button>
+    </form>
+
+    <div class="toggle-link">
+      <span id="toggleText">Don't have an account? </span>
+      <a id="toggleLink">Sign up</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // === Replace these with YOUR values from Supabase ===
+  const SUPABASE_URL = 'https://lytruleyyurkrgolrjfs.supabase.co';      // ← your URL
+  const SUPABASE_ANON_KEY = 'sb_publishable_Okv6zvU7R0JxLesRcOw9NA_tPY4-u2E'; // ← your anon key
+
+  const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const form = document.getElementById('authForm');
+  const errorMsg = document.getElementById('errorMsg');
+  const successMsg = document.getElementById('successMsg');
+  const submitBtn = document.getElementById('submitBtn');
+  const toggleText = document.getElementById('toggleText');
+  const toggleLink = document.getElementById('toggleLink');
+  const confirmGroup = document.getElementById('confirmGroup');
+
+  let isLogin = true;
+
+  toggleLink.onclick = (e) => {
+    e.preventDefault();
+    isLogin = !isLogin;
+    if (isLogin) {
+      document.getElementById('form-title').textContent = 'Welcome back';
+      document.getElementById('form-subtitle').textContent = 'Sign in to continue';
+      submitBtn.textContent = 'Sign In';
+      toggleText.textContent = "Don't have an account? ";
+      toggleLink.textContent = 'Sign up';
+      confirmGroup.style.display = 'none';
+    } else {
+      document.getElementById('form-title').textContent = 'Create account';
+      document.getElementById('form-subtitle').textContent = 'Sign up to get started';
+      submitBtn.textContent = 'Sign Up';
+      toggleText.textContent = 'Already have an account? ';
+      toggleLink.textContent = 'Sign in';
+      confirmGroup.style.display = 'block';
+    }
+    errorMsg.style.display = 'none';
+    successMsg.style.display = 'none';
+  };
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    errorMsg.style.display = 'none';
+    successMsg.style.display = 'none';
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm')?.value || '';
+
+    if (!email || !password) {
+      errorMsg.textContent = 'Please fill in all fields';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    if (!isLogin && password !== confirm) {
+      errorMsg.textContent = 'Passwords do not match';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = isLogin ? 'Signing in...' : 'Signing up...';
+
+    let result;
+
+    if (isLogin) {
+      result = await supabase.auth.signInWithPassword({ email, password });
+    } else {
+      result = await supabase.auth.signUp({ email, password });
+    }
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = isLogin ? 'Sign In' : 'Sign Up';
+
+    if (result.error) {
+      errorMsg.textContent = result.error.message.includes('already registered')
+        ? 'Email already in use – please sign in'
+        : result.error.message;
+      errorMsg.style.display = 'block';
+    } else {
+      successMsg.textContent = isLogin
+        ? 'Login successful! (redirecting...)'
+        : 'Account created! Check your email to confirm, then sign in.';
+      successMsg.style.display = 'block';
+
+      if (isLogin) {
+        // Optional: save session or redirect
+        console.log('User logged in:', result.data.user);
+        setTimeout(() => {
+          // window.location.href = '/dashboard.html'; // add your protected page
+          alert('Welcome! You are now logged in.');
+        }, 1500);
+      } else {
+        // After signup, switch back to login
+        setTimeout(() => toggleLink.click(), 2500);
+      }
+    }
+  };
+</script>
+
+</body>
+</html>
