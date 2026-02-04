@@ -82,16 +82,14 @@
 </div>
 
 <script>
-  // ===============================================
-  //  YOUR SUPABASE CREDENTIALS - MUST BE CORRECT
-  // ===============================================
-  const SUPABASE_URL      = 'https://lytruleyyurkrgolrjfs.supabase.co';
+  // === YOUR SUPABASE CONFIG ===
+  const SUPABASE_URL = 'https://lytruleyyurkrgolrjfs.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_Okv6zvU7R0JxLesRcOw9NA_tPY4-u2E';
 
-  // Initialize Supabase client — ONLY ONCE, correct syntax
+  // Initialize Supabase client (ONLY ONE declaration)
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // DOM elements
+  // Get DOM elements
   const form         = document.getElementById('authForm');
   const errorMsg     = document.getElementById('errorMsg');
   const successMsg   = document.getElementById('successMsg');
@@ -102,7 +100,7 @@
 
   let isLogin = true;
 
-  // Toggle login / signup mode
+  // Toggle between login and signup
   toggleLink.onclick = (e) => {
     e.preventDefault();
     isLogin = !isLogin;
@@ -127,7 +125,7 @@
     successMsg.style.display = 'none';
   };
 
-  // Form submission
+  // Form submit handler
   form.onsubmit = async (e) => {
     e.preventDefault();
 
