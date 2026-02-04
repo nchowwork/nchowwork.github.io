@@ -82,23 +82,27 @@
 </div>
 
 <script>
-  // === Replace these with YOUR real values from Supabase dashboard ===
-  const SUPABASE_URL    = 'https://lytruleyyurkrgolrjfs.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_Okv6zvU7R0JxLesRcOw9NA_tPY4-u2E'; // ← must be your actual publishable/anon key
+  // ===============================================
+  //  YOUR SUPABASE CREDENTIALS - REPLACE THESE
+  // ===============================================
+  const SUPABASE_URL = 'https://lytruleyyurkrgolrjfs.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_Okv6zvU7R0JxLesRcOw9NA_tPY4-u2E';
 
-  // Correct initialization (global createClient from the CDN)
+  // Initialize Supabase client (ONLY ONCE)
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const form        = document.getElementById('authForm');
-  const errorMsg    = document.getElementById('errorMsg');
-  const successMsg  = document.getElementById('successMsg');
-  const submitBtn   = document.getElementById('submitBtn');
-  const toggleText  = document.getElementById('toggleText');
-  const toggleLink  = document.getElementById('toggleLink');
+  // DOM elements
+  const form         = document.getElementById('authForm');
+  const errorMsg     = document.getElementById('errorMsg');
+  const successMsg   = document.getElementById('successMsg');
+  const submitBtn    = document.getElementById('submitBtn');
+  const toggleText   = document.getElementById('toggleText');
+  const toggleLink   = document.getElementById('toggleLink');
   const confirmGroup = document.getElementById('confirmGroup');
 
   let isLogin = true;
 
+  // Toggle login ↔ signup mode
   toggleLink.onclick = (e) => {
     e.preventDefault();
     isLogin = !isLogin;
@@ -123,8 +127,10 @@
     successMsg.style.display = 'none';
   };
 
+  // Form submission handler
   form.onsubmit = async (e) => {
     e.preventDefault();
+
     errorMsg.style.display = 'none';
     successMsg.style.display = 'none';
 
@@ -132,6 +138,7 @@
     const password = document.getElementById('password').value;
     const confirm  = document.getElementById('confirm')?.value || '';
 
+    // Basic client-side validation
     if (!email || !password) {
       errorMsg.textContent = 'Please fill in all fields';
       errorMsg.style.display = 'block';
@@ -164,24 +171,26 @@
 
       if (result.error) {
         let msg = result.error.message;
+
         if (msg.includes('already registered') || msg.includes('duplicate key')) {
-          msg = 'Email already in use – please sign in instead';
-        } else if (msg.includes('confirmed')) {
-          msg = 'Email not confirmed yet – check your inbox';
+          msg = 'This email is already registered – please sign in';
+        } else if (msg.includes('confirmed') || msg.includes('confirmation')) {
+          msg = 'Email not confirmed yet – check your inbox (including spam)';
         }
+
         errorMsg.textContent = msg;
         errorMsg.style.display = 'block';
       } else {
         successMsg.textContent = isLogin
-          ? 'Login successful! (redirecting...)'
-          : 'Account created! Check your email to confirm, then sign in.';
+          ? 'Login successful! Redirecting...'
+          : 'Account created! Check your email for confirmation link, then sign in.';
         successMsg.style.display = 'block';
 
         if (isLogin) {
           console.log('Logged in user:', result.data.user);
           setTimeout(() => {
             alert('Welcome! You are now logged in.');
-            // window.location.href = '/dashboard.html'; // ← your next page
+            // window.location.href = '/dashboard.html'; // add your next page
           }, 1500);
         } else {
           setTimeout(() => toggleLink.click(), 2500);
@@ -189,7 +198,7 @@
       }
     } catch (err) {
       console.error('Auth error:', err);
-      errorMsg.textContent = 'Connection error – please try again';
+      errorMsg.textContent = 'Connection error – please check internet or Supabase config';
       errorMsg.style.display = 'block';
     } finally {
       submitBtn.disabled = false;
