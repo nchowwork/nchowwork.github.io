@@ -83,12 +83,12 @@
 
 <script>
   // ===============================================
-  //  YOUR SUPABASE CREDENTIALS - REPLACE THESE
+  //  YOUR SUPABASE CREDENTIALS - MUST BE CORRECT
   // ===============================================
-  const SUPABASE_URL = 'https://lytruleyyurkrgolrjfs.supabase.co';
+  const SUPABASE_URL      = 'https://lytruleyyurkrgolrjfs.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_Okv6zvU7R0JxLesRcOw9NA_tPY4-u2E';
 
-  // Initialize Supabase client (ONLY ONCE)
+  // Initialize Supabase client — ONLY ONCE, correct syntax
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // DOM elements
@@ -102,7 +102,7 @@
 
   let isLogin = true;
 
-  // Toggle login ↔ signup mode
+  // Toggle login / signup mode
   toggleLink.onclick = (e) => {
     e.preventDefault();
     isLogin = !isLogin;
@@ -127,7 +127,7 @@
     successMsg.style.display = 'none';
   };
 
-  // Form submission handler
+  // Form submission
   form.onsubmit = async (e) => {
     e.preventDefault();
 
@@ -138,7 +138,6 @@
     const password = document.getElementById('password').value;
     const confirm  = document.getElementById('confirm')?.value || '';
 
-    // Basic client-side validation
     if (!email || !password) {
       errorMsg.textContent = 'Please fill in all fields';
       errorMsg.style.display = 'block';
@@ -173,9 +172,9 @@
         let msg = result.error.message;
 
         if (msg.includes('already registered') || msg.includes('duplicate key')) {
-          msg = 'This email is already registered – please sign in';
+          msg = 'Email already registered – please sign in';
         } else if (msg.includes('confirmed') || msg.includes('confirmation')) {
-          msg = 'Email not confirmed yet – check your inbox (including spam)';
+          msg = 'Email not confirmed – check inbox/spam';
         }
 
         errorMsg.textContent = msg;
@@ -190,7 +189,6 @@
           console.log('Logged in user:', result.data.user);
           setTimeout(() => {
             alert('Welcome! You are now logged in.');
-            // window.location.href = '/dashboard.html'; // add your next page
           }, 1500);
         } else {
           setTimeout(() => toggleLink.click(), 2500);
@@ -198,7 +196,7 @@
       }
     } catch (err) {
       console.error('Auth error:', err);
-      errorMsg.textContent = 'Connection error – please check internet or Supabase config';
+      errorMsg.textContent = 'Connection error – check Supabase keys or internet';
       errorMsg.style.display = 'block';
     } finally {
       submitBtn.disabled = false;
