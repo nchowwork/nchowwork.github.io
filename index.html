@@ -1,55 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { min-height:100vh; font-family:system-ui,-apple-system,sans-serif; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); display:grid; place-items:center; padding:20px; }
+    .login-container { background:white; border-radius:16px; box-shadow:0 20px 40px rgba(0,0,0,0.22); width:100%; max-width:420px; overflow:hidden; }
+    .header { background:#4f46e5; color:white; padding:2.2rem 2rem; text-align:center; }
+    .header h1 { font-size:1.8rem; margin-bottom:0.4rem; }
+    .header p { opacity:0.9; font-size:0.95rem; }
+    .form-body { padding:2.5rem 2.2rem 2rem; }
+    .form-group { margin-bottom:1.6rem; position:relative; }
+    .form-group label { display:block; margin-bottom:0.5rem; color:#374151; font-weight:500; font-size:0.92rem; }
+    .input-wrapper { position:relative; }
+    .input-wrapper i { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#9ca3af; }
+    input { width:100%; padding:0.9rem 1rem 0.9rem 2.8rem; border:1px solid #d1d5db; border-radius:8px; font-size:1rem; transition:all 0.2s; }
+    input:focus { outline:none; border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,0.15); }
+    #auth-login-btn { width:100%; padding:1rem; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:1.05rem; font-weight:600; cursor:pointer; transition:all 0.25s; }
+    #auth-login-btn:hover { background:#4338ca; transform:translateY(-1px); }
+    #auth-login-btn:disabled { background:#a5b4fc; cursor:not-allowed; }
+    #success-message { display:none; text-align:center; margin-top:2rem; font-size:1.2rem; color:#10b981; }
+    #loading-message { text-align:center; margin-top:1rem; color:#6b7280; font-style:italic; }
+    .signup-link { margin-top:1.5rem; text-align:center; color:#6b7280; font-size:0.95rem; }
+    .signup-link a { color:#4f46e5; font-weight:500; text-decoration:none; }
+    .signup-link a:hover { text-decoration:underline; }
+  </style>
+</head>
+<body>
+
+<div class="login-container">
+  <div class="header">
+    <h1>Welcome back</h1>
+    <p>Please sign in</p>
+  </div>
+
+  <div class="form-body">
+    <div id="login-form">
+      <!-- Optional UI field – disabled since Auth0 handles login -->
+      <div class="form-group">
+        <label for="email">Email (reference only)</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-envelope"></i>
+          <input type="email" id="email" placeholder="name@example.com" disabled>
+        </div>
+      </div>
+
+      <button id="auth-login-btn" type="button">Sign in with Auth0</button>
+      <div id="loading-message">Initializing authentication...</div>
+    </div>
+
+    <div id="success-message">
+      <!-- Filled dynamically after successful login -->
+    </div>
+
+    <div class="signup-link">
+      Don't have an account? Auth0 handles signup during login.
+    </div>
+  </div>
+</div>
+
+<!-- Auth0 SPA SDK CDN (v2.12 is current and valid; you can update to 2.13 if desired) -->
 <script src="https://cdn.auth0.com/js/auth0-spa-js/2.12/auth0-spa-js.production.js"></script>
 
 <script>
-  let auth0Client;  // renamed to avoid conflict with global 'auth0'
+  let auth0Client;  // Separate variable to avoid overwriting global 'auth0'
 
   async function initAuth0() {
+    const loadingEl = document.getElementById('loading-message');
     try {
       auth0Client = await auth0.createAuth0Client({
         domain: "dev-5bqlrrqjf1dyxmue.auth0.com",
         clientId: "nxBsRKbkPyKiKDEhlkHCXC0SfKIKkrEv",
         authorizationParams: {
-          redirect_uri: window.location.origin  // auto-uses your current site URL
+          redirect_uri: window.location.origin
         }
       });
 
-      // Handle redirect callback (after Auth0 sends user back)
+      // Process redirect callback from Auth0 (if this is the return page)
       if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
         await auth0Client.handleRedirectCallback();
-        window.history.replaceState({}, document.title, window.location.pathname); // clean URL bar
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
 
       updateUI();
     } catch (error) {
-      console.error("Auth0 initialization failed:", error);
-      alert("Failed to initialize Auth0. Check console for details (likely config or network issue).");
+      console.error("Auth0 init error:", error);
+      loadingEl.textContent = "Failed to load login. Check console or try refreshing.";
     }
   }
 
   async function updateUI() {
+    const loadingEl = document.getElementById('loading-message');
+    loadingEl.style.display = 'none';
+
     if (!auth0Client) return;
 
     const isAuthenticated = await auth0Client.isAuthenticated();
 
     if (isAuthenticated) {
       const user = await auth0Client.getUser();
-      document.getElementById("login-form").style.display = "none";
-      const msg = document.getElementById("success-message");
-      msg.style.display = "block";
+      document.getElementById('login-form').style.display = 'none';
+      const msg = document.getElementById('success-message');
+      msg.style.display = 'block';
       msg.innerHTML = `
-        Welcome, ${user.name || user.email || user.nickname || "User"}!<br>
-        Logged in via Auth0.<br>
-        <button onclick="logout()">Logout</button>
+        Welcome, ${user.name || user.email || user.nickname || 'User'}!<br>
+        Logged in successfully via Auth0.<br><br>
+        <button onclick="logout()" style="padding:0.8rem 1.5rem; background:#ef4444; color:white; border:none; border-radius:8px; cursor:pointer;">Logout</button>
       `;
     } else {
-      // Attach click handler only once
-      const btn = document.getElementById("auth-login-btn");
-      btn.addEventListener("click", login);
+      document.getElementById('auth-login-btn').addEventListener('click', login);
     }
   }
 
   async function login() {
-    if (!auth0Client) return;
+    if (!auth0Client) {
+      alert("Authentication not ready yet. Please wait or refresh.");
+      return;
+    }
     await auth0Client.loginWithRedirect();
   }
 
@@ -60,6 +131,9 @@
     });
   }
 
-  // Start on page load
-  window.addEventListener("load", initAuth0);
+  // Initialize on page load
+  window.addEventListener('load', initAuth0);
 </script>
+
+</body>
+</html>
