@@ -82,14 +82,16 @@
 </div>
 
 <script>
-  // === YOUR SUPABASE CONFIG ===
-  const SUPABASE_URL = 'https://lytruleyyurkrgolrjfs.supabase.co';
+  // ===============================================
+  //  YOUR SUPABASE CONFIG - REPLACE IF NEEDED
+  // ===============================================
+  const SUPABASE_URL      = 'https://lytruleyyurkrgolrjfs.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_Okv6zvU7R0JxLesRcOw9NA_tPY4-u2E';
 
-  // Initialize Supabase client (ONLY ONE declaration)
+  // Initialize Supabase client (only once, correct syntax)
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Get DOM elements
+  // DOM elements
   const form         = document.getElementById('authForm');
   const errorMsg     = document.getElementById('errorMsg');
   const successMsg   = document.getElementById('successMsg');
@@ -100,7 +102,7 @@
 
   let isLogin = true;
 
-  // Toggle between login and signup
+  // Toggle between login and signup modes
   toggleLink.onclick = (e) => {
     e.preventDefault();
     isLogin = !isLogin;
@@ -125,7 +127,7 @@
     successMsg.style.display = 'none';
   };
 
-  // Form submit handler
+  // Form submission handler
   form.onsubmit = async (e) => {
     e.preventDefault();
 
@@ -136,6 +138,7 @@
     const password = document.getElementById('password').value;
     const confirm  = document.getElementById('confirm')?.value || '';
 
+    // Basic validation
     if (!email || !password) {
       errorMsg.textContent = 'Please fill in all fields';
       errorMsg.style.display = 'block';
@@ -173,6 +176,8 @@
           msg = 'Email already registered – please sign in';
         } else if (msg.includes('confirmed') || msg.includes('confirmation')) {
           msg = 'Email not confirmed – check inbox/spam';
+        } else if (msg.includes('invalid')) {
+          msg = 'Invalid email or password format';
         }
 
         errorMsg.textContent = msg;
@@ -187,6 +192,7 @@
           console.log('Logged in user:', result.data.user);
           setTimeout(() => {
             alert('Welcome! You are now logged in.');
+            // window.location.href = '/dashboard.html'; // your next page
           }, 1500);
         } else {
           setTimeout(() => toggleLink.click(), 2500);
