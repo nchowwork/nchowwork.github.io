@@ -61,8 +61,10 @@
 
   async function initAuth0() {
     auth0 = await auth0.createAuth0Client({
-      domain: "YOUR_AUTH0_DOMAIN.auth0.com",          // ← replace
-      clientId: "YOUR_AUTH0_CLIENT_ID",                // ← replace
+      <!-- domain: "YOUR_AUTH0_DOMAIN.auth0.com",          // ← replace -->
+      domain: dev-5bqlrrqjf1dyxmue.auth0.com
+      <!-- clientId: "YOUR_AUTH0_CLIENT_ID",                // ← replace -->
+      clientID: nxBsRKbkPyKiKDEhlkHCXC0SfKIKkrEv
       authorizationParams: {
         redirect_uri: window.location.origin           // or window.location.origin + '/callback.html'
       }
@@ -108,3 +110,4 @@
 
 </body>
 </html>
+
