@@ -1,113 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sign In</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-
-  <style>
-    /* Your full original CSS here — unchanged, I'm not repeating all of it for brevity */
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { min-height:100vh; font-family:system-ui,-apple-system,sans-serif; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); display:grid; place-items:center; padding:20px; }
-    .login-container { background:white; border-radius:16px; box-shadow:0 20px 40px rgba(0,0,0,0.22); width:100%; max-width:420px; overflow:hidden; }
-    .header { background:#4f46e5; color:white; padding:2.2rem 2rem; text-align:center; }
-    .header h1 { font-size:1.8rem; margin-bottom:0.4rem; }
-    .header p { opacity:0.9; font-size:0.95rem; }
-    .form-body { padding:2.5rem 2.2rem 2rem; }
-    /* ... rest of your CSS (form-group, input, btn-login, etc.) ... */
-    #success-message { display:none; text-align:center; margin-top:2rem; font-size:1.2rem; color:#10b981; }
-    #auth-login-btn { width:100%; padding:1rem; background:#eb5424; color:white; border:none; border-radius:8px; font-size:1.05rem; font-weight:600; cursor:pointer; }
-    #auth-login-btn:hover { background:#d94a1f; }
-  </style>
-</head>
-<body>
-
-<div class="login-container">
-  <div class="header">
-    <h1>Welcome back</h1>
-    <p>Please sign in</p>
-  </div>
-
-  <div class="form-body">
-    <div id="login-form">
-      <!-- Optional: keep email field for UI, but Auth0 handles actual login -->
-      <div class="form-group">
-        <label for="email">Email (shown for reference)</label>
-        <div class="input-wrapper">
-          <i class="fa-solid fa-envelope"></i>
-          <input type="email" id="email" placeholder="name@example.com" disabled>
-        </div>
-      </div>
-
-      <button id="auth-login-btn" type="button">Sign in with Auth0</button>
-    </div>
-
-    <div id="success-message">
-      <!-- Filled by JS after login -->
-    </div>
-
-    <div class="signup-link" style="margin-top:1.5rem; text-align:center;">
-      Don't have an account? Auth0 handles signup too.
-    </div>
-  </div>
-</div>
-
-<!-- Auth0 SPA SDK – use latest version (check https://cdn.auth0.com/js/auth0-spa-js/ for current) -->
 <script src="https://cdn.auth0.com/js/auth0-spa-js/2.12/auth0-spa-js.production.js"></script>
 
 <script>
-  let auth0;
+  let auth0Client;  // renamed to avoid conflict with global 'auth0'
 
   async function initAuth0() {
-    auth0 = await auth0.createAuth0Client({
-      <!-- domain: "YOUR_AUTH0_DOMAIN.auth0.com",          // ← replace -->
-      domain: dev-5bqlrrqjf1dyxmue.auth0.com
-      <!-- clientId: "YOUR_AUTH0_CLIENT_ID",                // ← replace -->
-      clientID: nxBsRKbkPyKiKDEhlkHCXC0SfKIKkrEv
-      authorizationParams: {
-        redirect_uri: window.location.origin           // or window.location.origin + '/callback.html'
+    try {
+      auth0Client = await auth0.createAuth0Client({
+        domain: "dev-5bqlrrqjf1dyxmue.auth0.com",
+        clientId: "nxBsRKbkPyKiKDEhlkHCXC0SfKIKkrEv",
+        authorizationParams: {
+          redirect_uri: window.location.origin  // auto-uses your current site URL
+        }
+      });
+
+      // Handle redirect callback (after Auth0 sends user back)
+      if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
+        await auth0Client.handleRedirectCallback();
+        window.history.replaceState({}, document.title, window.location.pathname); // clean URL bar
       }
-    });
 
-    // Handle callback if this is redirect back
-    if (window.location.search.includes('code=') && window.location.search.includes('state=')) {
-      await auth0.handleRedirectCallback();
-      window.history.replaceState({}, document.title, window.location.pathname); // clean URL
+      updateUI();
+    } catch (error) {
+      console.error("Auth0 initialization failed:", error);
+      alert("Failed to initialize Auth0. Check console for details (likely config or network issue).");
     }
-
-    updateUI();
   }
 
   async function updateUI() {
-    const isAuthenticated = await auth0.isAuthenticated();
+    if (!auth0Client) return;
+
+    const isAuthenticated = await auth0Client.isAuthenticated();
 
     if (isAuthenticated) {
-      const user = await auth0.getUser();
-      document.getElementById('login-form').style.display = 'none';
-      const msg = document.getElementById('success-message');
-      msg.style.display = 'block';
-      msg.innerHTML = `Welcome, ${user.name || user.email || user.nickname || 'User'}!<br>Logged in via Auth0.<br><button onclick="logout()">Logout</button>`;
+      const user = await auth0Client.getUser();
+      document.getElementById("login-form").style.display = "none";
+      const msg = document.getElementById("success-message");
+      msg.style.display = "block";
+      msg.innerHTML = `
+        Welcome, ${user.name || user.email || user.nickname || "User"}!<br>
+        Logged in via Auth0.<br>
+        <button onclick="logout()">Logout</button>
+      `;
     } else {
-      // Show login button
-      document.getElementById('auth-login-btn').addEventListener('click', login);
+      // Attach click handler only once
+      const btn = document.getElementById("auth-login-btn");
+      btn.addEventListener("click", login);
     }
   }
 
   async function login() {
-    await auth0.loginWithRedirect();
+    if (!auth0Client) return;
+    await auth0Client.loginWithRedirect();
   }
 
   async function logout() {
-    await auth0.logout({
+    if (!auth0Client) return;
+    await auth0Client.logout({
       logoutParams: { returnTo: window.location.origin }
     });
   }
 
-  // Start everything
-  window.addEventListener('load', initAuth0);
+  // Start on page load
+  window.addEventListener("load", initAuth0);
 </script>
-
-</body>
-</html>
-
